@@ -1,0 +1,133 @@
+@startuml Blood Bank System Use Case Diagram
+
+!define RECTANGLE class
+
+' Actors
+actor "Guest" as guest
+actor "Registered User" as user
+actor "Donor" as donor
+actor "Recipient" as recipient
+actor "Hospital" as hospital
+actor "Patient" as patient
+actor "Admin" as admin
+actor "System" as system
+
+' Use Cases
+rectangle "Blood Bank System" {
+  ' Authentication & Registration
+  usecase "Register Account" as UC1
+  usecase "Login" as UC2
+  usecase "Logout" as UC3
+  usecase "Reset Password" as UC4
+  
+  ' Profile Management
+  usecase "View Profile" as UC5
+  usecase "Update Profile" as UC6
+  usecase "Delete Account" as UC7
+  
+  ' Blood Donation Management
+  usecase "Schedule Blood Donation" as UC8
+  usecase "View Donation History" as UC9
+  usecase "Update Donation Details" as UC10
+  usecase "Cancel Donation" as UC11
+  
+  ' Blood Request Management
+  usecase "Create Blood Request" as UC12
+  usecase "View Blood Requests" as UC13
+  usecase "Update Blood Request" as UC14
+  usecase "Cancel Blood Request" as UC15
+  usecase "Approve Blood Request" as UC16
+  
+  ' Blood Inventory Management
+  usecase "View Blood Inventory" as UC17
+  usecase "Add Blood Units" as UC18
+  usecase "Update Blood Stock" as UC19
+  usecase "Remove Expired Blood" as UC20
+  
+  ' Hospital Management
+  usecase "Register Hospital" as UC21
+  usecase "Update Hospital Info" as UC22
+  usecase "View Hospital Details" as UC23
+  
+  ' Patient Management
+  usecase "Register Patient" as UC24
+  usecase "Update Patient Info" as UC25
+  usecase "View Patient Details" as UC26
+  
+  ' User Management
+  usecase "View All Users" as UC27
+  usecase "Manage User Roles" as UC28
+  usecase "Deactivate User" as UC29
+  
+  ' Reports & Analytics
+  usecase "Generate Reports" as UC30
+  usecase "View Analytics Dashboard" as UC31
+  
+  ' Notifications
+  usecase "Send Notifications" as UC32
+  usecase "View Notifications" as UC33
+}
+
+' Relationships - Guest
+guest --> UC1
+guest --> UC2
+guest --> UC4
+
+' Relationships - Registered User
+user --> UC3
+user --> UC5
+user --> UC6
+user --> UC7
+user --> UC17
+user --> UC33
+
+' Relationships - Donor
+donor --> UC8
+donor --> UC9
+donor --> UC10
+donor --> UC11
+
+' Relationships - Recipient
+recipient --> UC12
+recipient --> UC13
+recipient --> UC14
+recipient --> UC15
+
+' Relationships - Hospital
+hospital --> UC21
+hospital --> UC22
+hospital --> UC23
+hospital --> UC18
+hospital --> UC19
+hospital --> UC20
+
+' Relationships - Patient
+patient --> UC24
+patient --> UC25
+patient --> UC26
+patient --> UC12
+
+' Relationships - Admin
+admin --> UC16
+admin --> UC27
+admin --> UC28
+admin --> UC29
+admin --> UC30
+admin --> UC31
+admin --> UC32
+
+' System relationships
+system --> UC32
+system --> UC20
+
+' Include relationships
+UC8 ..> UC24 : <<include>>
+UC12 ..> UC26 : <<include>>
+UC21 ..> UC23 : <<include>>
+
+' Extend relationships
+UC16 ..> UC15 : <<extend>>
+UC20 ..> UC19 : <<extend>>
+UC32 ..> UC33 : <<extend>>
+
+@enduml

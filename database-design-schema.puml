@@ -1,0 +1,332 @@
+@startuml Blood Bank System Database Design Schema
+
+title Blood Bank System Database Design Schema
+
+' === DATABASE SCHEMA DESIGN ===
+' === ENTITY RELATIONSHIP DIAGRAM ===
+
+' === TABLES ===
+
+entity User {
+  *id : BIGINT <<PK>>
+  --
+  *username : VARCHAR(50) <<UNIQUE>>
+  *email : VARCHAR(100) <<UNIQUE>>
+  *password : VARCHAR(255)
+  *first_name : VARCHAR(50)
+  *last_name : VARCHAR(50)
+  *phone : VARCHAR(20)
+  *role : ENUM('ADMIN','USER','DONOR','RECIPIENT','HOSPITAL','PATIENT')
+  *enabled : BOOLEAN
+  *email_verified : BOOLEAN
+  *created_at : TIMESTAMP
+  *updated_at : TIMESTAMP
+  *verification_token : VARCHAR(255)
+}
+
+entity Admin {
+  *id : BIGINT <<PK>>
+  --
+  *user_id : BIGINT <<FK>>
+  *admin_code : VARCHAR(20) <<UNIQUE>>
+  *department : VARCHAR(100)
+  *joined_date : DATE
+  *active : BOOLEAN
+}
+
+entity Donor {
+  *id : BIGINT <<PK>>
+  --
+  *user_id : BIGINT <<FK>>
+  *donor_id : VARCHAR(20) <<UNIQUE>>
+  *blood_type : VARCHAR(5)
+  *rh_factor : VARCHAR(3)
+  *date_of_birth : DATE
+  *gender : VARCHAR(10)
+  *address : TEXT
+  *emergency_contact : VARCHAR(100)
+  *medical_history : TEXT
+  *last_donation_date : DATE
+  *total_donations : INTEGER
+  *eligible : BOOLEAN
+}
+
+entity Patient {
+  *id : BIGINT <<PK>>
+  --
+  *user_id : BIGINT <<FK>>
+  *patient_id : VARCHAR(20) <<UNIQUE>>
+  *blood_type : VARCHAR(5)
+  *rh_factor : VARCHAR(3)
+  *date_of_birth : DATE
+  *gender : VARCHAR(10)
+  *address : TEXT
+  *emergency_contact : VARCHAR(100)
+  *medical_condition : TEXT
+  *allergies : TEXT
+}
+
+entity Hospital {
+  *id : BIGINT <<PK>>
+  --
+  *user_id : BIGINT <<FK>>
+  *name : VARCHAR(100)
+  *license_number : VARCHAR(50) <<UNIQUE>>
+  *address : TEXT
+  *city : VARCHAR(50)
+  *state : VARCHAR(50)
+  *zip_code : VARCHAR(10)
+  *phone : VARCHAR(20)
+  *email : VARCHAR(100)
+  *website : VARCHAR(100)
+  *verified : BOOLEAN
+  *registration_date : DATE
+}
+
+entity BloodInventory {
+  *id : BIGINT <<PK>>
+  --
+  *blood_type : VARCHAR(5)
+  *rh_factor : VARCHAR(3)
+  *units_available : INTEGER
+  *collection_date : DATE
+  *expiry_date : DATE
+  *storage_location : VARCHAR(50)
+  *status : VARCHAR(20)
+  *notes : TEXT
+  *created_at : TIMESTAMP
+  *updated_at : TIMESTAMP
+}
+
+entity BloodDonation {
+  *id : BIGINT <<PK>>
+  --
+  *donor_id : BIGINT <<FK>>
+  *donation_id : VARCHAR(20) <<UNIQUE>>
+  *donation_date : DATE
+  *blood_type : VARCHAR(5)
+  *rh_factor : VARCHAR(3)
+  *units_collected : INTEGER
+  *donation_center : VARCHAR(100)
+  *status : VARCHAR(20)
+  *test_results : TEXT
+  *remarks : TEXT
+  *created_at : TIMESTAMP
+}
+
+entity BloodRequest {
+  *id : BIGINT <<PK>>
+  --
+  *patient_id : BIGINT <<FK>>
+  *hospital_id : BIGINT <<FK>>
+  *request_id : VARCHAR(20) <<UNIQUE>>
+  *blood_type : VARCHAR(5)
+  *rh_factor : VARCHAR(3)
+  *units_required : INTEGER
+  *required_date : DATE
+  *urgency_level : VARCHAR(20)
+  *status : VARCHAR(20)
+  *purpose : TEXT
+  *created_at : TIMESTAMP
+  *updated_at : TIMESTAMP
+}
+
+entity Notification {
+  *id : BIGINT <<PK>>
+  --
+  *user_id : BIGINT <<FK>>
+  *message : TEXT
+  *type : VARCHAR(50)
+  *sent_at : TIMESTAMP
+  *read_at : TIMESTAMP
+  *status : VARCHAR(20)
+}
+
+entity Report {
+  *id : BIGINT <<PK>>
+  --
+  *report_type : VARCHAR(50)
+  *generated_by : BIGINT <<FK>>
+  *generated_at : TIMESTAMP
+  *content : TEXT
+  *file_path : VARCHAR(255)
+}
+
+' === RELATIONSHIPS ===
+
+User ||--o{ Admin : "has"
+User ||--o{ Donor : "is"
+User ||--o{ Patient : "is"
+User ||--o{ Hospital : "is"
+User ||--o{ Notification : "receives"
+User ||--o{ Report : "generates"
+
+Donor ||--o{ BloodDonation : "donates"
+Patient ||--o{ BloodRequest : "requests"
+Hospital ||--o{ BloodRequest : "processes"
+Hospital ||--o{ BloodInventory : "manages"
+
+BloodDonation ||--o{ BloodInventory : "updates"
+BloodRequest ||--o{ BloodInventory : "reserves"
+
+' === INDEXES ===
+' Performance Indexes
+User : <<index>> (email)
+User : <<index>> (username)
+User : <<index>> (role)
+User : <<index>> (created_at)
+
+Donor : <<index>> (user_id)
+Donor : <<index>> (blood_type)
+Donor : <<index>> (donor_id)
+
+Patient : <<index>> (user_id)
+Patient : <<index>> (blood_type)
+Patient : <<index>> (patient_id)
+
+Hospital : <<index>> (user_id)
+Hospital : <<index>> (license_number)
+
+BloodDonation : <<index>> (donor_id)
+BloodDonation : <<index>> (donation_date)
+BloodDonation : <<index>> (blood_type)
+
+BloodRequest : <<index>> (patient_id)
+BloodRequest : <<index>> (hospital_id)
+BloodRequest : <<index>> (status)
+BloodRequest : <<index>> (blood_type)
+
+BloodInventory : <<index>> (blood_type)
+BloodInventory : <<index>> (expiry_date)
+BloodInventory : <<index>> (status)
+
+Notification : <<index>> (user_id)
+Notification : <<index>> (sent_at)
+Notification : <<index>> (status)
+
+Report : <<index>> (generated_by)
+Report : <<index>> (generated_at)
+
+' === ENUMERATIONS ===
+enum UserRole {
+  ADMIN
+  USER
+  DONOR
+  RECIPIENT
+  HOSPITAL
+  PATIENT
+}
+
+enum BloodType {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+  WAITLISTED
+}
+
+enum DonationStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+' === VIEWS ===
+' Materialized Views for Performance
+entity UserSummaryView {
+  *user_id : BIGINT <<PK>>
+  *username : VARCHAR(50)
+  *role : VARCHAR(20)
+  *total_donations : INTEGER
+  *total_requests : INTEGER
+  *last_activity : TIMESTAMP
+}
+
+entity InventorySummaryView {
+  *blood_type : VARCHAR(5) <<PK>>
+  *rh_factor : VARCHAR(3) <<PK>>
+  *total_units : INTEGER
+  *expired_units : INTEGER
+  *available_units : INTEGER
+  *last_updated : TIMESTAMP
+}
+
+' === TRIGGERS ===
+' Database Triggers
+note right of User : ON INSERT: Generate user_id, created_at
+note right of BloodDonation : ON INSERT: Update donor total_donations
+note right of BloodRequest : ON INSERT: Update inventory availability
+note right of BloodInventory : ON UPDATE: Update last_updated
+note right of Notification : ON INSERT: Send notification email
+
+' === CONSTRAINTS ===
+' Database Constraints
+User : <<unique>> (username)
+User : <<unique>> (email)
+User : <<check>> (enabled IN (0,1))
+User : <<check>> (email_verified IN (0,1))
+
+Donor : <<unique>> (donor_id)
+Donor : <<check>> (total_donations >= 0)
+Donor : <<check>> (eligible IN (0,1))
+
+Patient : <<unique>> (patient_id)
+
+Hospital : <<unique>> (license_number)
+Hospital : <<check>> (verified IN (0,1))
+
+BloodDonation : <<unique>> (donation_id)
+BloodDonation : <<check>> (units_collected > 0)
+
+BloodRequest : <<unique>> (request_id)
+BloodRequest : <<check>> (units_required > 0)
+
+BloodInventory : <<check>> (units_available >= 0)
+BloodInventory : <<check>> (expiry_date > collection_date)
+
+' === FOREIGN KEYS ===
+User.id -> Admin.user_id
+User.id -> Donor.user_id
+User.id -> Patient.user_id
+User.id -> Hospital.user_id
+User.id -> Notification.user_id
+User.id -> Report.generated_by
+
+Donor.id -> BloodDonation.donor_id
+Patient.id -> BloodRequest.patient_id
+Hospital.id -> BloodRequest.hospital_id
+
+' === PERFORMANCE OPTIMIZATIONS ===
+' Partitioning Strategy
+note right of BloodDonation : Partition by donation_date (monthly)
+note right of BloodRequest : Partition by created_at (monthly)
+note right of Notification : Partition by sent_at (monthly)
+
+' === SECURITY ===
+' Security Features
+note right of User : Password hashed with bcrypt
+note right of User : Email verification required
+note right of User : Role-based access control
+note right of User : Account lockout after failed attempts
+
+' === BACKUP STRATEGY ===
+' Backup and Recovery
+note right of User : Daily backups
+note right of BloodInventory : Real-time replication
+note right of BloodDonation : Weekly full backup
+note right of BloodRequest : Monthly archive
+
+@enduml
